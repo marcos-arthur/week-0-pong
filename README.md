@@ -10,6 +10,7 @@ Repositório do projeto da Week 0 da GD50 apresentada por Colton Ogden
 
 ## Construido com _amor_ :construction_worker:
 * [Löve2D](https://love2d.org/) - framework
+* [Lua](http://www.lua.org/) - linguagem
 
 ## Autores
 * Marcos Arthur :persevere: - *Dono do repoisitório* - [Página no Linkedin](https://www.linkedin.com/in/marcos-arthur/)
