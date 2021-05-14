@@ -79,7 +79,19 @@ function love.update(dt)
         end
     end
 
+    if ball.x < 0 then
+        servingPlayer = 1
+        player2Score = player2Score + 1
+        ball:reset()
+        gameState = 'start'
+    end
 
+    if ball.x > VIRTUAL_WIDTH then
+        servingPlayer = 2
+        player1Score = player1Score + 1
+        ball:reset()
+        gameState = 'start'
+    end
 
     if love.keyboard.isDown('w') then
         player1.dy = -PADDLE_SPEED
@@ -125,12 +137,6 @@ function love.draw()
     love.graphics.clear(40/255, 45/255, 52/255, 255/255)
 
     love.graphics.setFont(smallFont)
-
-    if gameState == 'start' then
-        love.graphics.printf('Hello Start State!', 0, 20, VIRTUAL_WIDTH, 'center')
-    else
-        love.graphics.printf('Hello Play State!', 0, 20, VIRTUAL_WIDTH, 'center')
-    end
 
     love.graphics.setFont(scoreFont)
     love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, VIRTUAL_HEIGHT / 3)
