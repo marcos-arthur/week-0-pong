@@ -1,11 +1,13 @@
 Paddle = Class{}
 
-function Paddle:init(x, y, width, height)
+function Paddle:init(x, y, width, height, isBot)
     self.x = x
     self.y = y
     self.width = width
     self.height = height
     self.dy = 0
+
+    self.isBot = isBot
 end
 
 function Paddle:update(dt)
@@ -13,7 +15,7 @@ function Paddle:update(dt)
         self.y = math.max(0, self.y + self.dy * dt)
     else
         self.y = math.min(VIRTUAL_HEIGHT - self.height, self.y + self.dy * dt)
-    end
+    end  
 end
 
 function Paddle:render()

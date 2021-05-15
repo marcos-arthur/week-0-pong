@@ -1,3 +1,5 @@
+love = require 'love'
+
 push = require 'push'
 
 Class = require 'class'
@@ -41,10 +43,11 @@ function love.load()
         canvas = false
     })
 
-    player1 = Paddle(10, 30, 5, 20)
-    player2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 20)
+    player1 = Paddle(10, 30, 5, 20, true)
+    player2 = Paddle(VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 30, 5, 20, true)
 
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
+    originalBallspeed = math.random(140, 200)
 
     player1Score = 0
     player2Score = 0
@@ -62,8 +65,8 @@ end
 
 function love.update(dt)
     if gameState == 'serve' then
-        ball.dy = math.random(-50, 50)        
-        if servingPlayer == 1 then
+        ball.dy = math.random(-50, 50)
+        if servingPlayer == 1 then            
             ball.dx = math.random(140, 200)
         else
             ball.dx = -math.random(140, 200)
@@ -137,21 +140,49 @@ function love.update(dt)
             end
         end
 
-        if love.keyboard.isDown('w') then
-            player1.dy = -PADDLE_SPEED
-        elseif love.keyboard.isDown('s') then
-            player1.dy = PADDLE_SPEED
+        if player1.isBot then
+            if ball.dx < 0 and ball.x < VIRTUAL_WIDTH / 2 then
+                if player1.y < ball.y + ball.height / 2 and player1.y  + player1.height > ball.y + ball.height  then
+                    player1.dy = 0
+                elseif player1.y + player1.height / 2 > ball.y + ball.height / 2 then
+                    player1.dy = -PADDLE_SPEED
+                elseif player1.y + player1.height / 2 < ball.y + ball.height / 2 then
+                    player1.dy = PADDLE_SPEED
+                end
+            else
+                player1.dy = 0
+            end
         else
-            player1.dy = 0
-        end
+            if love.keyboard.isDown('w') then
+                player1.dy = -PADDLE_SPEED
+            elseif love.keyboard.isDown('s') then
+                player1.dy = PADDLE_SPEED
+            else
+                player1.dy = 0
+            end
+        end        
 
-        if love.keyboard.isDown('up') then
-            player2.dy = -PADDLE_SPEED
-        elseif love.keyboard.isDown('down') then
-            player2.dy = PADDLE_SPEED
+        if player2.isBot then
+            if ball.dx > 0 and ball.x > VIRTUAL_WIDTH / 2 then
+                if player2.y < ball.y + ball.height / 2 and player2.y  + player2.height > ball.y + ball.height  then
+                    player2.dy = 0
+                elseif player2.y + player2.height / 2 > ball.y + ball.height / 2 then
+                    player2.dy = -PADDLE_SPEED
+                elseif player2.y + player2.height / 2 < ball.y + ball.height / 2 then
+                    player2.dy = PADDLE_SPEED
+                end
+            else
+                player2.dy = 0
+            end
         else
-            player2.dy = 0
-        end
+            if love.keyboard.isDown('up') then
+                player2.dy = -PADDLE_SPEED
+            elseif love.keyboard.isDown('down') then
+                player2.dy = PADDLE_SPEED
+            else
+                player2.dy = 0
+            end
+        end        
 
         if gameState == 'play' then
             ball:update(dt)
@@ -160,6 +191,8 @@ function love.update(dt)
         player1:update(dt)
         player2:update(dt)
     end
+
+    
 end
 
 function love.keypressed(key)
@@ -184,6 +217,18 @@ function love.keypressed(key)
                 servingPlayer = 1
             end
         end
+    elseif key == 'x' then
+        if player1.isBot then
+            player1.isBot = false
+        else
+            player1.isBot = true
+        end
+    elseif key == 'c' then
+        if player2.isBot then
+            player2.isBot = false
+        else
+            player2.isBot = true
+        end
     end
 end
 
@@ -196,17 +241,37 @@ function love.draw()
         love.graphics.setFont(smallFont)
         love.graphics.printf('Welcome to Pong!', 0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press Enter to begin', 0, 20, VIRTUAL_WIDTH, 'center')
+
+        love.graphics.setColor(1, 1, 1, 1)
+        
+        love.graphics.setFont(largeFont)
+        love.graphics.printf(player1.isBot == true and 'BOT' or 'PLAYER 1', 0, VIRTUAL_HEIGHT / 2 - 30, VIRTUAL_WIDTH / 2, 'center')
+        love.graphics.setFont(smallFont)
+        love.graphics.printf(player1.isBot == true and 'Press X to select this side' or 'Press X to make your enemy suffer', 0, VIRTUAL_HEIGHT / 2 + 30, VIRTUAL_WIDTH / 2, 'center')
+
+        love.graphics.setFont(largeFont)
+        love.graphics.printf(player2.isBot == true and 'BOT' or 'PLAYER 2', VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2 - 30, VIRTUAL_WIDTH / 2 , 'center')
+        love.graphics.setFont(smallFont)
+        love.graphics.printf(player2.isBot == true and 'Press C to select this side' or 'Press C to make your enemy cry', VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2 + 30, VIRTUAL_WIDTH / 2 , 'center')
+
+        love.graphics.setColor(0, 1, 0, 1)
     elseif gameState == 'serve' then
         love.graphics.setFont(smallFont)
         love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'play' then
-
+        
     elseif gameState == 'done' then
         love.graphics.setFont(largeFont)
         love.graphics.printf('Player ' .. tostring(winningPlayer) .. " wins", 0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
         love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
+    end
+
+    if gameState == 'serve' or gameState == 'play' then
+        love.graphics.setFont(smallFont)
+        love.graphics.printf(player1.isBot == true and 'BOT' or 'PLAYER 1', 0, 10, VIRTUAL_WIDTH / 2, 'center')
+        love.graphics.printf(player2.isBot == true and 'BOT' or 'PLAYER 2', VIRTUAL_WIDTH / 2, 10, VIRTUAL_WIDTH / 2 , 'center')
     end
 
     displayScore()
@@ -215,7 +280,7 @@ function love.draw()
     player2:render()
     ball:render()
 
-    displayFPS()
+    -- displayFPS()
 
     push:finish()
 end
@@ -228,6 +293,6 @@ end
 
 function displayFPS()
     love.graphics.setFont(smallFont)
-    love.graphics.setColor(0, 1, 0, 1)    
+    love.graphics.setColor(0, 1, 0, 1)
     love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
 end
